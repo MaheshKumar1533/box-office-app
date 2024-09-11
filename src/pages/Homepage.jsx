@@ -1,34 +1,48 @@
 import { useState } from "react";
+import { searchForShows, searchForActors } from "../api/tvmaze";
+import SearchForm from "../components/SearchForm";
+import ActorGrid from "../components/actors/ActorGrid";
+import ShowGrid from "../components/shows/ShowGrid";
+import { useQuery } from "@tanstack/react-query";
 
 const Homepage = () => {
-	const [inputValue, setInputValue] = useState("");
+	const [filter, setFilter] = useState("");
 
-	const onInputChange = (event) => {
-		setInputValue(event.target.value);
+	const { data: apiData, error: apiError } = useQuery({
+		queryKey: ["search", filter],
+		queryFn:
+			filter.type === "shows"
+				? () => searchForShows(filter.q)
+				:() =>  searchForActors(filter.q),
+		enabled: !!filter,
+		refetchOnWindowFocus: false,
+	});
+
+	const onSearch = async ({ q, type }) => {
+		setFilter({ q, type });
 	};
 
-    const onSearch = async (event) => {
-        event.preventDefault();
-        const response = await fetch(`https://api.tvmaze.com/search/shows?q=${inputValue}`);
-        const body = await response.json();
-        console.log(body);
-    };
+	const renderApiData = () => {
+		if (apiError) {
+			return <div>Error occured: {apiError.message}</div>;
+		}
+		if (apiData?.length === 0) {
+			return <div>No results found.</div>;
+		}
+		if (apiData) {
+			return apiData[0].show ? (
+				<ShowGrid shows={apiData} />
+			) : (
+				<ActorGrid actors={apiData} />
+			);
+		}
+		return null;
+	};
 
 	return (
 		<div>
-			<form onSubmit={onSearch}>
-				<input
-					type="text"
-					name="q"
-					value={inputValue}
-					onChange={onInputChange}
-				/>
-				<button
-					type="submit"
-				>
-					Search
-				</button>
-			</form>
+			<SearchForm onSearch={onSearch} />
+			<div>{renderApiData()}</div>
 		</div>
 	);
 };
