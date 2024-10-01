@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { getShowById } from "../api/tvmaze";
 import ShowMainData from "../components/shows/ShowMainData";
 import Details from "../components/shows/Details";
+import Seasons from "../components/shows/Seasons";
+import Cast from "../components/shows/Cast";
 
 const Show = () => {
 	const { showId } = useParams();
@@ -17,7 +19,7 @@ const Show = () => {
 	}
 
 	if (showData) {
-        console.log(showData);
+		console.log(showData);
 		return (
 			<div>
 				<ShowMainData
@@ -25,13 +27,18 @@ const Show = () => {
 					name={showData.name}
 					rating={showData.rating}
 					summary={showData.summary}
-                    gerne={showData.genres}
+					gerne={showData.genres}
 				/>
+				<h2>Details</h2>
 				<Details
 					status={showData.status}
 					network={showData.network}
 					premiered={showData.premiered}
 				/>
+				<h2>Seasons</h2>
+				<Seasons seasons={showData._embedded.seasons} />
+				<h2>Cast</h2>
+				<Cast cast={showData._embedded.cast} />
 			</div>
 		);
 	}
